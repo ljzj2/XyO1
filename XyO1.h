@@ -411,18 +411,21 @@ void init(HWND h) {
 
 			hr = resource->QueryInterface(__uuidof(ID3D11Texture2D), (void**)&texture);
 			if (SUCCEEDED(hr)) {
-				//D3D11_TEXTURE2D_DESC desc1;
-				//texture->GetDesc(&desc1);
-				//desc1.Usage = D3D11_USAGE_STAGING;
-				//desc1.MiscFlags = 0;
-				//desc1.BindFlags = 0;
-				//desc1.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+				D3D11_TEXTURE2D_DESC desc1;
+				texture->GetDesc(&desc1);
+				desc1.Usage = D3D11_USAGE_DEFAULT;
+				desc1.MiscFlags = 0;
+				desc1.BindFlags = 0;
+				desc1.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
 				ID3D11Texture2D* texture1 = NULL;
-				//hr = device->CreateTexture2D(&desc1, NULL, &texture1);
-				texture1 = to_format(texture, DXGI_FORMAT_NV12);
+				hr = device->CreateTexture2D(&desc1, NULL, &texture1);
+				ctx->CopyResource(texture1, texture);
+				texture->Release();
+				texture = NULL;
+				texture1 = to_format(texture1, DXGI_FORMAT_NV12);
 				if (texture1 != NULL) {
-					texture->Release();
-					texture = NULL;
+					//texture->Release();
+					//texture = NULL;
 					//ctx->CopyResource(texture1, texture);
 
 					IDXGISurface* dxgiSurface1 = NULL;
