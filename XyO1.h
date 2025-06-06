@@ -374,6 +374,16 @@ void init(HWND h) {
 					BYTE* data;
 					DWORD pcbMaxLength = 0, pcbCurrentLength = 0;
 					hr = buffer->Lock(&data, &pcbMaxLength, &pcbCurrentLength);
+
+					char text[256];
+					sprintf_s(text, "hr 0x%08X, pcbCurrentLength %u\n", hr, pcbCurrentLength);
+					OutputDebugStringA(text);
+
+					static HANDLE g_File = nullptr;
+					if(!g_File) 
+						g_File = CreateFileW(L"C:\\Temp\\Output.h264", GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+					WriteFile(g_File, data, pcbCurrentLength, nullptr, nullptr);
+
 					if (SUCCEEDED(hr)) {
 						send(s, (const char*)data, pcbCurrentLength, 0);
 						hr = buffer->Unlock();
@@ -444,6 +454,12 @@ void init(HWND h) {
 								hr = presentation->GetTime(&sampleTime);
 								hr = sample->SetSampleTime(sampleTime);
 
+								static int64_t g_Time = 0;
+								auto const Time = g_Time;
+								g_Time += 50'0000;
+								hr = sample->SetSampleTime(Time);
+								hr = sample->SetSampleDuration(50'0000);
+
 								DWORD length = 0;
 								IMF2DBuffer* imf_buffer = NULL;
 								hr = buffer->QueryInterface(__uuidof(IMF2DBuffer), (void**)&imf_buffer);
@@ -451,6 +467,11 @@ void init(HWND h) {
 									hr = imf_buffer->GetContiguousLength(&length);
 									hr = buffer->SetCurrentLength(length);
 									hr = transform->ProcessInput(0, sample, 0);
+
+									char text[256];
+									sprintf_s(text, "hr 0x%08X\n", hr);
+									OutputDebugStringA(text);
+
 									imf_buffer->Release();
 									imf_buffer = NULL;
 									buffer->Release();
